@@ -2,6 +2,7 @@ import React from 'react';
 import { Button, Card, Form, Input } from 'antd';
 import { signIn } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { Link } from 'react-router-dom';
 
 const SignIn: React.FC = () => {
   const { login } = useAuth();
@@ -35,9 +36,15 @@ const SignIn: React.FC = () => {
             <Input.Password />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" style={{ width: '100%' }} loading={isLoading}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              style={{ width: '100%', marginBottom: '.5rem' }}
+              loading={isLoading}
+            >
               Sign In
             </Button>
+            Not registered yet? <Link to="/sign-up">Sign up</Link>!
           </Form.Item>
         </Form>
       </Card>

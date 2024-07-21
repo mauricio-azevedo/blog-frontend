@@ -1,19 +1,19 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { message as antdMessage } from 'antd';
+import { ApiResponse } from './api.types';
 
 const api = axios.create({
   baseURL: 'http://localhost:3000',
   withCredentials: true,
 });
 
-// Response interceptor
 api.interceptors.response.use(
-  (response) => {
-    const { data } = response;
-    if (data.message) {
-      antdMessage.success(data.message);
+  (response: AxiosResponse<ApiResponse<unknown>>) => {
+    const message: string | undefined = response.data?.message;
+    if (message) {
+      antdMessage.success(message);
     }
-    return data.data; // Return only the data part of the response
+    return response;
   },
   (error) => {
     if (error.response && error.response.data && error.response.data.message) {

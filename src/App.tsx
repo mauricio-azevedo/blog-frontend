@@ -9,12 +9,12 @@ import {
   VideoCameraOutlined,
 } from '@ant-design/icons';
 import { Button, Layout, Menu, theme } from 'antd';
-import SignIn from './components/Users/SignIn';
-import SignUp from './components/Users/SignUp';
-import PostList from './components/Posts/PostList';
-import ProtectedRoute from './components/ProtectedRoute';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { signOut } from './services/api';
+import SignIn from './features/auth/SignIn';
+import SignUp from './features/auth/SignUp';
+import PostList from './features/posts/PostList';
+import ProtectedRoute from './features/auth/ProtectedRoute';
+import { AuthProvider, useAuth } from './features/auth/AuthContext';
+import { signOut } from './api/api';
 
 const { Header, Sider, Content } = Layout;
 

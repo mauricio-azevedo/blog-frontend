@@ -1,10 +1,10 @@
 import React from 'react';
 import { Button, Card, Form, Input } from 'antd';
-import { signUp } from '../../services/api';
+import { signIn } from '../../api/api';
+import { useAuth } from './AuthContext';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
 
-const SignUp: React.FC = () => {
+const SignIn: React.FC = () => {
   const { login } = useAuth();
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -12,10 +12,10 @@ const SignUp: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await signUp({ user: { ...values } });
+      await signIn({ user: { ...values } });
       login();
     } catch (error) {
-      console.error('Sign up error:', error);
+      console.error('Sign in error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -23,11 +23,8 @@ const SignUp: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-      <Card title="Sign Up" style={{ width: 300 }}>
-        <Form name="sign_up" layout="vertical" initialValues={{ remember: true }} onFinish={onFinish}>
-          <Form.Item label="Name" name="name" rules={[{ required: true, message: 'Please input your name' }]}>
-            <Input />
-          </Form.Item>
+      <Card title="Sign In" style={{ width: 300 }}>
+        <Form name="sign_in" layout="vertical" initialValues={{ remember: true }} onFinish={onFinish}>
           <Form.Item label="Email" name="email" rules={[{ required: true, message: 'Please input your email' }]}>
             <Input />
           </Form.Item>
@@ -38,23 +35,16 @@ const SignUp: React.FC = () => {
           >
             <Input.Password />
           </Form.Item>
-          <Form.Item
-            label="Confirm password"
-            name="password_confirmation"
-            rules={[{ required: true, message: 'Please confirm your password' }]}
-          >
-            <Input.Password />
-          </Form.Item>
           <Form.Item>
             <Button
               type="primary"
               htmlType="submit"
-              loading={isLoading}
               style={{ width: '100%', marginBottom: '.5rem' }}
+              loading={isLoading}
             >
-              Sign Up
+              Sign In
             </Button>
-            Already registered? <Link to="/sign-in">Sign in</Link>!
+            Not registered yet? <Link to="/sign-up">Sign up</Link>!
           </Form.Item>
         </Form>
       </Card>
@@ -62,4 +52,4 @@ const SignUp: React.FC = () => {
   );
 };
 
-export default SignUp;
+export default SignIn;

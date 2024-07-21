@@ -1,13 +1,6 @@
 import React, { useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import {
-  LogoutOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  UploadOutlined,
-  UserOutlined,
-  VideoCameraOutlined,
-} from '@ant-design/icons';
+import { FireOutlined, LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined, MessageOutlined } from '@ant-design/icons';
 import { Button, Layout, Menu, theme } from 'antd';
 import SignIn from './features/auth/SignIn';
 import SignUp from './features/auth/SignUp';
@@ -51,18 +44,13 @@ const MainLayout: React.FC<{
           items={[
             {
               key: '1',
-              icon: <UserOutlined />,
+              icon: <MessageOutlined />,
               label: 'Posts',
             },
             {
               key: '2',
-              icon: <VideoCameraOutlined />,
-              label: 'Users',
-            },
-            {
-              key: '3',
-              icon: <UploadOutlined />,
-              label: 'Comments',
+              icon: <FireOutlined />,
+              label: 'More to come',
             },
           ]}
         />

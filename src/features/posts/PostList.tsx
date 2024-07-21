@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Button, Collapse, Dropdown, Flex, Form, Input, List, MenuProps, Modal, Typography } from 'antd';
+import { Button, Collapse, Dropdown, Empty, Flex, Form, Input, List, MenuProps, Modal, Typography } from 'antd';
 import { createComment, createPost, fetchPosts } from '../../api/api';
 import { Post } from './posts.types';
 import { Comment } from '../comments/comments.types';
@@ -214,7 +214,7 @@ const PostList: React.FC = () => {
                     ></Button>
                   </Flex>
                   {post.comments.length === 0 ? (
-                    <Text type="secondary">Be the first to comment!</Text>
+                    <Empty description={<Text type="secondary">Be the first to comment!</Text>}></Empty>
                   ) : (
                     <List
                       dataSource={post.comments}

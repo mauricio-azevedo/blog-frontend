@@ -5,7 +5,7 @@ import { Post } from '../features/posts/posts.types';
 import { User } from '../features/users/users.types';
 
 const api = axios.create({
-  baseURL: 'http://localhost:3000',
+  baseURL: process.env.REACT_APP_API_BASE_URL,
   withCredentials: true,
 });
 

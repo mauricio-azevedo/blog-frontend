@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Collapse, Dropdown, Empty, Flex, Form, Input, List, Modal, Typography } from 'antd';
-import { createComment, createPost, fetchPosts } from '../../api/api';
+import { createComment, createPost, fetchPosts, deleteComment } from '../../api/api';
 import { Post } from './posts.types';
 import { Comment } from '../comments/comments.types';
 import { AxiosResponse } from 'axios';
@@ -123,9 +123,16 @@ const PostList: React.FC = () => {
     console.log(`Edit comment ${commentId}`);
   };
 
-  const handleDeleteComment = (commentId: number) => {
-    // Add your delete comment logic here
-    console.log(`Delete comment ${commentId}`);
+  const handleDeleteComment = async (postId: number, commentId: number) => {
+    try {
+      await deleteComment(postId.toString(), commentId.toString());
+      const updatedPosts = posts.map((post) =>
+        post.id === postId ? { ...post, comments: post.comments.filter((comment) => comment.id !== commentId) } : post
+      );
+      setPosts(updatedPosts);
+    } catch (error) {
+      console.error('Failed to delete comment:', error);
+    }
   };
 
   const moreMenuPost = (postId: number) => ({
@@ -146,7 +153,7 @@ const PostList: React.FC = () => {
     ],
   });
 
-  const moreMenuComment = (commentId: number) => ({
+  const moreMenuComment = (postId: number, commentId: number) => ({
     items: [
       {
         key: 'edit',
@@ -158,7 +165,7 @@ const PostList: React.FC = () => {
         key: 'delete',
         icon: <DeleteOutlined />,
         label: 'Delete',
-        onClick: () => showDeleteConfirm(() => handleDeleteComment(commentId), 'comment'),
+        onClick: () => showDeleteConfirm(() => handleDeleteComment(postId, commentId), 'comment'),
         danger: true,
       },
     ],
@@ -249,7 +256,7 @@ const PostList: React.FC = () => {
                               <Text>{comment.body}</Text>
                             </Flex>
                             {comment.user.id === authenticatedUser?.id && (
-                              <Dropdown menu={moreMenuComment(comment.id)} trigger={['click']}>
+                              <Dropdown menu={moreMenuComment(post.id, comment.id)} trigger={['click']}>
                                 <Button type="text" icon={<MoreOutlined />} />
                               </Dropdown>
                             )}

@@ -158,23 +158,33 @@ const PostList: React.FC = () => {
     ],
   });
 
-  const moreMenuComment = (postId: number, commentId: number) => ({
-    items: [
-      {
-        key: 'edit',
-        icon: <EditOutlined />,
-        label: 'Edit',
-        onClick: () => handleEditComment(commentId),
-      },
-      {
-        key: 'delete',
-        icon: <DeleteOutlined />,
-        label: 'Delete',
-        onClick: () => showDeleteConfirm(() => handleDeleteComment(postId, commentId), 'comment'),
-        danger: true,
-      },
-    ],
-  });
+  const moreMenuComment = (postId: number, commentId: number, commentUserId: number, postUserId: number) => {
+    const items = [
+      ...(authenticatedUser?.id === commentUserId
+        ? [
+            {
+              key: 'edit',
+              icon: <EditOutlined />,
+              label: 'Edit',
+              onClick: () => handleEditComment(commentId),
+            },
+          ]
+        : []),
+      ...(authenticatedUser?.id === commentUserId || authenticatedUser?.id === postUserId
+        ? [
+            {
+              key: 'delete',
+              icon: <DeleteOutlined />,
+              label: 'Delete',
+              onClick: () => showDeleteConfirm(() => handleDeleteComment(postId, commentId), 'comment'),
+              danger: true,
+            },
+          ]
+        : []),
+    ];
+
+    return { items };
+  };
 
   return (
     <>
@@ -260,8 +270,11 @@ const PostList: React.FC = () => {
                               <Link type="secondary">{comment.user.name}</Link>
                               <Text>{comment.body}</Text>
                             </Flex>
-                            {comment.user.id === authenticatedUser?.id && (
-                              <Dropdown menu={moreMenuComment(post.id, comment.id)} trigger={['click']}>
+                            {(authenticatedUser?.id === comment.user.id || authenticatedUser?.id === post.user.id) && (
+                              <Dropdown
+                                menu={moreMenuComment(post.id, comment.id, comment.user.id, post.user.id)}
+                                trigger={['click']}
+                              >
                                 <Button type="text" icon={<MoreOutlined />} />
                               </Dropdown>
                             )}

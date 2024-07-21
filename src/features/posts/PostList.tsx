@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Collapse, Dropdown, Empty, Flex, Form, Input, List, Modal, Typography } from 'antd';
-import { createComment, createPost, fetchPosts, deleteComment } from '../../api/api';
+import { createComment, createPost, fetchPosts, deleteComment, deletePost } from '../../api/api';
 import { Post } from './posts.types';
 import { Comment } from '../comments/comments.types';
 import { AxiosResponse } from 'axios';
@@ -113,9 +113,14 @@ const PostList: React.FC = () => {
     console.log(`Edit post ${postId}`);
   };
 
-  const handleDeletePost = (postId: number) => {
-    // Add your delete post logic here
-    console.log(`Delete post ${postId}`);
+  const handleDeletePost = async (postId: number) => {
+    try {
+      await deletePost(postId.toString());
+      const updatedPosts = posts.filter((post) => post.id !== postId);
+      setPosts(updatedPosts);
+    } catch (error) {
+      console.error('Failed to delete post:', error);
+    }
   };
 
   const handleEditComment = (commentId: number) => {

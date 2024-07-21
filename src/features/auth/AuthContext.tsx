@@ -1,32 +1,39 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { User } from '../users/users.types';
 
 interface AuthContextType {
-  isAuthenticated: boolean;
-  login: () => void;
+  isAuthenticated: () => boolean;
+  login: (user: User) => void;
   logout: () => void;
 }
+
+const fetchAuthenticated = (): User | null => {
+  const storedAuthenticated: string | null = localStorage.getItem('authenticatedUser');
+  return storedAuthenticated ? JSON.parse(storedAuthenticated) : null;
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    const storedAuth = localStorage.getItem('isAuthenticated');
-    return storedAuth ? JSON.parse(storedAuth) : false;
-  });
+  const [authenticatedUser, setAuthenticatedUser] = useState<User | null>(fetchAuthenticated());
   const navigate = useNavigate();
 
   useEffect(() => {
-    localStorage.setItem('isAuthenticated', JSON.stringify(isAuthenticated));
-  }, [isAuthenticated]);
+    localStorage.setItem('authenticatedUser', JSON.stringify(authenticatedUser));
+  }, [authenticatedUser]);
 
-  const login = () => {
-    setIsAuthenticated(true);
+  const isAuthenticated = useCallback(() => {
+    return !!fetchAuthenticated();
+  }, []);
+
+  const login = (user: User) => {
+    setAuthenticatedUser(user);
     navigate('/posts');
   };
 
   const logout = () => {
-    setIsAuthenticated(false);
+    setAuthenticatedUser(null);
     navigate('/sign-in');
   };
 

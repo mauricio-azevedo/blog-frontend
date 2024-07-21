@@ -1,19 +1,25 @@
 import React from 'react';
 import { Button, Card, Form, Input } from 'antd';
 import { signUp } from '../../api/api';
-import { Link } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
 const SignUp: React.FC = () => {
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
+  const location = useLocation();
+
   const [isLoading, setIsLoading] = React.useState(false);
+
+  if (isAuthenticated()) {
+    return <Navigate to="/posts" state={{ from: location }} replace />;
+  }
 
   const onFinish = async (values: any) => {
     setIsLoading(true);
 
     try {
-      await signUp({ user: { ...values } });
-      login();
+      const response = await signUp({ user: { ...values } });
+      login(response.data.data);
     } catch (error) {
       console.error('Sign up error:', error);
     } finally {

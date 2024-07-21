@@ -1,6 +1,8 @@
 import axios, { AxiosResponse } from 'axios';
 import { message as antdMessage } from 'antd';
 import { ApiResponse } from './api.types';
+import { Post } from '../features/posts/posts.types';
+import { User } from '../features/users/users.types';
 
 const api = axios.create({
   baseURL: 'http://localhost:3000',
@@ -26,14 +28,15 @@ api.interceptors.response.use(
 );
 
 // Users
-export const signUp = (credentials: { user: { email: string; password: string } }) => api.post('/users', credentials);
+export const signUp = (credentials: { user: { email: string; password: string } }) =>
+  api.post<ApiResponse<User>>('/users', credentials);
 export const signIn = (credentials: { user: { email: string; password: string } }) =>
-  api.post('/users/sign_in', credentials);
+  api.post<ApiResponse<User>>('/users/sign_in', credentials);
 export const signOut = () => api.delete('/users/sign_out');
 
 // Posts
 export const createPost = (post: { title: string; content: string }) => api.post('/posts', post);
-export const fetchPosts = () => api.get('/posts');
+export const fetchPosts = () => api.get<ApiResponse<Post[]>>('/posts');
 export const fetchPost = (id: string) => api.get(`/posts/${id}`);
 export const updatePost = (id: string, post: { title: string; content: string }) => api.put(`/posts/${id}`, post);
 export const deletePost = (id: string) => api.delete(`/posts/${id}`);

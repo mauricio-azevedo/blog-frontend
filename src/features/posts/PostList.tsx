@@ -1,6 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Collapse, Dropdown, Empty, Flex, Form, Input, List, Modal, Typography } from 'antd';
-import { createComment, createPost, fetchPosts, deleteComment, deletePost, updatePost } from '../../api/api';
+import {
+  createComment,
+  createPost,
+  fetchPosts,
+  deleteComment,
+  deletePost,
+  updatePost,
+  updateComment,
+} from '../../api/api';
 import { Post } from './posts.types';
 import { Comment } from '../comments/comments.types';
 import { AxiosResponse } from 'axios';
@@ -23,14 +31,17 @@ const PostList: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isEditCommentModalVisible, setIsEditCommentModalVisible] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
   const [isCommenting, setIsCommenting] = useState(false);
   const [expandedPostId, setExpandedPostId] = useState<number | null>(null);
   const [newComment, setNewComment] = useState<string>('');
   const [editPost, setEditPost] = useState<Post | null>(null);
+  const [editComment, setEditComment] = useState<Comment | null>(null);
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
+  const [editCommentForm] = Form.useForm();
 
   const loadPosts = useCallback(async () => {
     try {
@@ -48,16 +59,16 @@ const PostList: React.FC = () => {
     loadPosts();
   }, [loadPosts]);
 
-  const showCreateModal = () => {
+  const showCreatePostModal = () => {
     setIsCreateModalVisible(true);
   };
 
-  const handleCreateCancel = () => {
+  const handleCreatePostCancel = () => {
     setIsCreateModalVisible(false);
     form.resetFields();
   };
 
-  const handleCreate = async (values: any) => {
+  const handleCreatePostSubmit = async (values: any) => {
     try {
       setIsCreating(true);
       const response: AxiosResponse<ApiResponse<Post>> = await createPost(values);
@@ -71,19 +82,19 @@ const PostList: React.FC = () => {
     }
   };
 
-  const showEditModal = (post: Post) => {
+  const showEditPostModal = (post: Post) => {
     setEditPost(post);
     editForm.setFieldsValue({ title: post.title, body: post.body });
     setIsEditModalVisible(true);
   };
 
-  const handleEditCancel = () => {
+  const handleEditPostCancel = () => {
     setIsEditModalVisible(false);
     setEditPost(null);
     editForm.resetFields();
   };
 
-  const handleEdit = async (values: any) => {
+  const handleEditPostSubmit = async (values: any) => {
     if (!editPost) return;
     try {
       setIsCreating(true);
@@ -95,6 +106,46 @@ const PostList: React.FC = () => {
       editForm.resetFields();
     } catch (error) {
       console.error('Failed to update post:', error);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const showEditCommentModal = (comment: Comment) => {
+    setEditComment(comment);
+    editCommentForm.setFieldsValue({ body: comment.body });
+    setIsEditCommentModalVisible(true);
+  };
+
+  const handleEditCommentCancel = () => {
+    setIsEditCommentModalVisible(false);
+    setEditComment(null);
+    editCommentForm.resetFields();
+  };
+
+  const handleEditCommentSubmit = async (values: any) => {
+    if (!editComment) return;
+    try {
+      setIsCreating(true);
+      const response: AxiosResponse<ApiResponse<Comment>> = await updateComment(
+        editComment.post_id.toString(),
+        editComment.id.toString(),
+        values
+      );
+      const updatedPosts = posts.map((post) =>
+        post.id === editComment.post_id
+          ? {
+              ...post,
+              comments: post.comments.map((comment) => (comment.id === editComment.id ? response.data.data : comment)),
+            }
+          : post
+      );
+      setPosts(updatedPosts);
+      setIsEditCommentModalVisible(false);
+      setEditComment(null);
+      editCommentForm.resetFields();
+    } catch (error) {
+      console.error('Failed to update comment:', error);
     } finally {
       setIsCreating(false);
     }
@@ -140,14 +191,14 @@ const PostList: React.FC = () => {
     });
   };
 
-  const handleEditPost = (postId: number) => {
+  const handleEditPostClick = (postId: number) => {
     const post = posts.find((p) => p.id === postId);
     if (post) {
-      showEditModal(post);
+      showEditPostModal(post);
     }
   };
 
-  const handleDeletePost = async (postId: number) => {
+  const handleDeletePostClick = async (postId: number) => {
     try {
       await deletePost(postId.toString());
       const updatedPosts = posts.filter((post) => post.id !== postId);
@@ -157,12 +208,14 @@ const PostList: React.FC = () => {
     }
   };
 
-  const handleEditComment = (commentId: number) => {
-    // Add your edit comment logic here
-    console.log(`Edit comment ${commentId}`);
+  const handleEditCommentClick = (commentId: number) => {
+    const comment = posts.flatMap((post) => post.comments).find((c) => c.id === commentId);
+    if (comment) {
+      showEditCommentModal(comment);
+    }
   };
 
-  const handleDeleteComment = async (postId: number, commentId: number) => {
+  const handleDeleteCommentClick = async (postId: number, commentId: number) => {
     try {
       await deleteComment(postId.toString(), commentId.toString());
       const updatedPosts = posts.map((post) =>
@@ -180,13 +233,13 @@ const PostList: React.FC = () => {
         key: 'edit',
         icon: <EditOutlined />,
         label: 'Edit',
-        onClick: () => handleEditPost(postId),
+        onClick: () => handleEditPostClick(postId),
       },
       {
         key: 'delete',
         icon: <DeleteOutlined />,
         label: 'Delete',
-        onClick: () => showDeleteConfirm(() => handleDeletePost(postId), 'post'),
+        onClick: () => showDeleteConfirm(() => handleDeletePostClick(postId), 'post'),
         danger: true,
       },
     ],
@@ -200,7 +253,7 @@ const PostList: React.FC = () => {
               key: 'edit',
               icon: <EditOutlined />,
               label: 'Edit',
-              onClick: () => handleEditComment(commentId),
+              onClick: () => handleEditCommentClick(commentId),
             },
           ]
         : []),
@@ -210,7 +263,7 @@ const PostList: React.FC = () => {
               key: 'delete',
               icon: <DeleteOutlined />,
               label: 'Delete',
-              onClick: () => showDeleteConfirm(() => handleDeleteComment(postId, commentId), 'comment'),
+              onClick: () => showDeleteConfirm(() => handleDeleteCommentClick(postId, commentId), 'comment'),
               danger: true,
             },
           ]
@@ -223,7 +276,7 @@ const PostList: React.FC = () => {
   return (
     <>
       <Flex justify="space-between" style={{ marginBottom: '16px' }}>
-        <Button type="primary" onClick={showCreateModal} disabled={isFetching || isCommenting}>
+        <Button type="primary" onClick={showCreatePostModal} disabled={isFetching || isCommenting}>
           Create Post
         </Button>
         <Button
@@ -325,8 +378,8 @@ const PostList: React.FC = () => {
           </List.Item>
         )}
       />
-      <Modal title="Create Post" open={isCreateModalVisible} onCancel={handleCreateCancel} footer={null}>
-        <Form form={form} layout="vertical" onFinish={handleCreate}>
+      <Modal title="Create Post" open={isCreateModalVisible} onCancel={handleCreatePostCancel} footer={null}>
+        <Form form={form} layout="vertical" onFinish={handleCreatePostSubmit}>
           <Form.Item name="title" label="Title" rules={[{ required: true, message: 'Please enter the title' }]}>
             <Input />
           </Form.Item>
@@ -340,11 +393,23 @@ const PostList: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
-      <Modal title="Edit Post" open={isEditModalVisible} onCancel={handleEditCancel} footer={null}>
-        <Form form={editForm} layout="vertical" onFinish={handleEdit}>
+      <Modal title="Edit Post" open={isEditModalVisible} onCancel={handleEditPostCancel} footer={null}>
+        <Form form={editForm} layout="vertical" onFinish={handleEditPostSubmit}>
           <Form.Item name="title" label="Title" rules={[{ required: true, message: 'Please enter the title' }]}>
             <Input />
           </Form.Item>
+          <Form.Item name="body" label="Body" rules={[{ required: true, message: 'Please enter the body' }]}>
+            <Input.TextArea rows={4} />
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={isCreating}>
+              Submit
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+      <Modal title="Edit Comment" open={isEditCommentModalVisible} onCancel={handleEditCommentCancel} footer={null}>
+        <Form form={editCommentForm} layout="vertical" onFinish={handleEditCommentSubmit}>
           <Form.Item name="body" label="Body" rules={[{ required: true, message: 'Please enter the body' }]}>
             <Input.TextArea rows={4} />
           </Form.Item>

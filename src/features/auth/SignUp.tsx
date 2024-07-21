@@ -18,7 +18,7 @@ const SignUp: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await signUp({ user: { ...values } });
+      const response = await signUp(values);
       login(response.data.data);
     } catch (error) {
       console.error('Sign up error:', error);

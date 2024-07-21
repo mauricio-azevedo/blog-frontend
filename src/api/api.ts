@@ -28,14 +28,13 @@ api.interceptors.response.use(
 );
 
 // Users
-export const signUp = (credentials: { user: { email: string; password: string } }) =>
-  api.post<ApiResponse<User>>('/users', credentials);
-export const signIn = (credentials: { user: { email: string; password: string } }) =>
-  api.post<ApiResponse<User>>('/users/sign_in', credentials);
+export const signUp = (user: { email: string; password: string }) => api.post<ApiResponse<User>>('/users', { user });
+export const signIn = (user: { email: string; password: string }) =>
+  api.post<ApiResponse<User>>('/users/sign_in', { user });
 export const signOut = () => api.delete('/users/sign_out');
 
 // Posts
-export const createPost = (post: { title: string; content: string }) => api.post('/posts', post);
+export const createPost = (post: { title: string; body: string }) => api.post<ApiResponse<Post>>('/posts', { post });
 export const fetchPosts = () => api.get<ApiResponse<Post[]>>('/posts');
 export const fetchPost = (id: string) => api.get(`/posts/${id}`);
 export const updatePost = (id: string, post: { title: string; content: string }) => api.put(`/posts/${id}`, post);

@@ -24,6 +24,7 @@ const PostList: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
+  const [isCommenting, setIsCommenting] = useState(false);
   const [expandedPostId, setExpandedPostId] = useState<number | null>(null);
   const [newComment, setNewComment] = useState<string>('');
   const [form] = Form.useForm();
@@ -80,6 +81,7 @@ const PostList: React.FC = () => {
     if (!newComment.trim()) return;
 
     try {
+      setIsCommenting(true);
       const response: AxiosResponse<ApiResponse<Comment>> = await createComment(postId, { body: newComment });
       const updatedPosts = posts.map((post) =>
         post.id === postId ? { ...post, comments: [...post.comments, response.data.data] } : post
@@ -88,20 +90,22 @@ const PostList: React.FC = () => {
       setNewComment('');
     } catch (error) {
       console.error('Failed to create comment:', error);
+    } finally {
+      setIsCommenting(false);
     }
   };
 
   return (
     <>
       <Flex justify="space-between" style={{ marginBottom: '16px' }}>
-        <Button type="primary" onClick={showModal} disabled={isFetching}>
+        <Button type="primary" onClick={showModal} disabled={isFetching || isCommenting}>
           Create Post
         </Button>
         <Button
           type="link"
           onClick={loadPosts}
           loading={isFetching}
-          disabled={isFetching}
+          disabled={isFetching || isCommenting}
           icon={<ReloadOutlined />}
         ></Button>
       </Flex>
@@ -149,36 +153,41 @@ const PostList: React.FC = () => {
                       type="primary"
                       onClick={() => handleCommentSubmit(post.id)}
                       disabled={!newComment.trim()}
+                      loading={isCommenting}
                       icon={<SendOutlined />}
                     ></Button>
                   </Flex>
-                  <List
-                    dataSource={post.comments}
-                    renderItem={(comment) => (
-                      <List.Item
-                        style={{
-                          border: 'none',
-                          marginTop: '.5rem',
-                          background: 'whitesmoke',
-                          padding: '1rem',
-                          borderRadius: '.5rem',
-                        }}
-                      >
-                        <Flex justify="space-between" style={{ width: '100%' }}>
-                          <Flex vertical>
-                            <Link type="secondary">{comment.user.name}</Link>
-                            <Text>{comment.body}</Text>
-                          </Flex>
-                          {comment.user.id === authenticatedUser?.id && (
-                            <Flex>
-                              <Button type="text" icon={<EditOutlined />}></Button>
-                              <Button type="text" icon={<DeleteOutlined />}></Button>
+                  {post.comments.length === 0 ? (
+                    <Text type="secondary">Be the first to comment!</Text>
+                  ) : (
+                    <List
+                      dataSource={post.comments}
+                      renderItem={(comment) => (
+                        <List.Item
+                          style={{
+                            border: 'none',
+                            marginTop: '.5rem',
+                            background: 'whitesmoke',
+                            padding: '1rem',
+                            borderRadius: '.5rem',
+                          }}
+                        >
+                          <Flex justify="space-between" style={{ width: '100%' }}>
+                            <Flex vertical>
+                              <Link type="secondary">{comment.user.name}</Link>
+                              <Text>{comment.body}</Text>
                             </Flex>
-                          )}
-                        </Flex>
-                      </List.Item>
-                    )}
-                  />
+                            {comment.user.id === authenticatedUser?.id && (
+                              <Flex>
+                                <Button type="text" icon={<EditOutlined />}></Button>
+                                <Button type="text" icon={<DeleteOutlined />}></Button>
+                              </Flex>
+                            )}
+                          </Flex>
+                        </List.Item>
+                      )}
+                    />
+                  )}
                 </Panel>
               </Collapse>
             </Flex>

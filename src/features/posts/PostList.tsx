@@ -1,13 +1,14 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { List, Button, Typography, Modal, Form, Input, Flex } from 'antd';
-import { fetchPosts, createPost } from '../../api/api';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Button, Collapse, Flex, Form, Input, List, Modal, Typography } from 'antd';
+import { createPost, fetchPosts } from '../../api/api';
 import { Post } from './posts.types';
 import { AxiosResponse } from 'axios';
 import { ApiResponse } from '../../api/api.types';
 import { useAuth } from '../auth/AuthContext';
-import { ReloadOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, ReloadOutlined } from '@ant-design/icons';
 
 const { Text, Link } = Typography;
+const { Panel } = Collapse;
 
 const PostList: React.FC = () => {
   const { authenticatedUser } = useAuth();
@@ -58,7 +59,7 @@ const PostList: React.FC = () => {
 
   return (
     <>
-      <Flex justify="space-between">
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
         <Button type="primary" onClick={showModal} disabled={isFetching}>
           Create Post
         </Button>
@@ -69,25 +70,50 @@ const PostList: React.FC = () => {
           disabled={isFetching}
           icon={<ReloadOutlined />}
         ></Button>
-      </Flex>
+      </div>
       <List
         loading={isFetching}
         itemLayout="horizontal"
         dataSource={posts}
         renderItem={(post) => (
           <List.Item
+            style={{ alignItems: 'flex-start' }}
             actions={
               post.user.id === authenticatedUser?.id
-                ? [<Button key="edit">Edit</Button>, <Button key="delete">Delete</Button>]
+                ? [
+                    <Button type="text" key="edit" icon={<EditOutlined />}></Button>,
+                    <Button type="text" key="delete" icon={<DeleteOutlined />}></Button>,
+                  ]
                 : []
             }
           >
-            <Flex vertical>
+            <Flex vertical style={{ width: '100%' }}>
               <Flex gap={'.5rem'}>
                 <Text strong>{post.title}</Text>
                 <Link type="secondary">{post.user.name}</Link>
               </Flex>
               <Text>{post.body}</Text>
+              {post.comments.length > 0 && (
+                <Collapse ghost>
+                  <Panel header={`Show ${post.comments.length} comments`} key="1">
+                    <List
+                      dataSource={post.comments}
+                      renderItem={(comment) => (
+                        <List.Item style={{ background: 'whitesmoke', padding: '1rem', borderRadius: '.5rem' }}>
+                          <Flex vertical>
+                            <Link type="secondary">{comment.user.name}</Link>
+                            <Text>{comment.body}</Text>
+                          </Flex>
+                          <Flex>
+                            <Button type="text" icon={<EditOutlined />}></Button>
+                            <Button type="text" icon={<DeleteOutlined />}></Button>
+                          </Flex>
+                        </List.Item>
+                      )}
+                    />
+                  </Panel>
+                </Collapse>
+              )}
             </Flex>
           </List.Item>
         )}

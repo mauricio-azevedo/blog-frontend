@@ -7,5 +7,5 @@ export interface Post extends Record {
   body: string;
   user_id: number;
   user: User;
-  comments: Comment;
+  comments: Comment[];
 }

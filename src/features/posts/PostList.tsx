@@ -226,9 +226,11 @@ const PostList: React.FC = () => {
                     {post.comments.length > 1 && `${post.comments.length} comments`}
                   </Button>
                 </Flex>
-                <Dropdown menu={moreMenuPost(post.id)} trigger={['click']}>
-                  <Button type="text" icon={<MoreOutlined />} />
-                </Dropdown>
+                {post.user.id === authenticatedUser?.id && (
+                  <Dropdown menu={moreMenuPost(post.id)} trigger={['click']}>
+                    <Button type="text" icon={<MoreOutlined />} />
+                  </Dropdown>
+                )}
               </Flex>
               <Collapse activeKey={expandedPostId === post.id ? '1' : undefined} ghost>
                 <Panel header="" key="1" showArrow={false}>

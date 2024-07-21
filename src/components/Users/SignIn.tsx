@@ -1,15 +1,15 @@
 import React from 'react';
-import { Form, Input, Button, Card } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { Button, Card, Form, Input } from 'antd';
 import { signIn } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const SignIn: React.FC = () => {
-  const navigate = useNavigate();
+  const { login } = useAuth();
 
   const onFinish = async (values: any) => {
     try {
       await signIn({ user: { ...values } });
-      navigate('/posts');
+      login();
     } catch (error) {
       console.error('Sign in error:', error);
     }

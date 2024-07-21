@@ -1,14 +1,10 @@
 import React from 'react';
 import { Form, Input, Button, Card } from 'antd';
-import { useNavigate } from 'react-router-dom';
 import { signUp } from '../../services/api';
 
 const SignUp: React.FC = () => {
-  const navigate = useNavigate();
-
   const onFinish = async (values: any) => {
     await signUp(values);
-    navigate('/sign-in');
   };
 
   return (

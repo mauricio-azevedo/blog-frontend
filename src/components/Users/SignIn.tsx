@@ -5,13 +5,18 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const SignIn: React.FC = () => {
   const { login } = useAuth();
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const onFinish = async (values: any) => {
+    setIsLoading(true);
+
     try {
       await signIn({ user: { ...values } });
       login();
     } catch (error) {
       console.error('Sign in error:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -30,7 +35,7 @@ const SignIn: React.FC = () => {
             <Input.Password />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
+            <Button type="primary" htmlType="submit" style={{ width: '100%' }} loading={isLoading}>
               Sign In
             </Button>
           </Form.Item>

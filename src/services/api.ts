@@ -29,6 +29,7 @@ api.interceptors.response.use(
 export const signUp = (credentials: { user: { email: string; password: string } }) => api.post('/users', credentials);
 export const signIn = (credentials: { user: { email: string; password: string } }) =>
   api.post('/users/sign_in', credentials);
+export const signOut = () => api.delete('/users/sign_out');
 
 // Posts
 export const createPost = (post: { title: string; content: string }) => api.post('/posts', post);

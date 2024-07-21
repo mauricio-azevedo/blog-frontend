@@ -9,3 +9,15 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
+
+.grey-link-button {
+  color: #444444;
+}
+
+.ant-collapse-header {
+  padding: 0 !important;
+}
+
+.ant-collapse-content-box {
+    padding: 0 !important;
+}

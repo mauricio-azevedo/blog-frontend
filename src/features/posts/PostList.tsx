@@ -5,7 +5,7 @@ import { Post } from './posts.types';
 import { AxiosResponse } from 'axios';
 import { ApiResponse } from '../../api/api.types';
 import { useAuth } from '../auth/AuthContext';
-import { DeleteOutlined, EditOutlined, ReloadOutlined } from '@ant-design/icons';
+import { CommentOutlined, DeleteOutlined, EditOutlined, MoreOutlined, ReloadOutlined } from '@ant-design/icons';
 
 const { Text, Link } = Typography;
 const { Panel } = Collapse;
@@ -16,6 +16,7 @@ const PostList: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
+  const [expandedPostId, setExpandedPostId] = useState<number | null>(null);
   const [form] = Form.useForm();
 
   const loadPosts = useCallback(async () => {
@@ -57,9 +58,13 @@ const PostList: React.FC = () => {
     }
   };
 
+  const toggleComments = (postId: number) => {
+    setExpandedPostId(expandedPostId === postId ? null : postId);
+  };
+
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+      <Flex justify="space-between" style={{ marginBottom: '16px' }}>
         <Button type="primary" onClick={showModal} disabled={isFetching}>
           Create Post
         </Button>
@@ -70,50 +75,59 @@ const PostList: React.FC = () => {
           disabled={isFetching}
           icon={<ReloadOutlined />}
         ></Button>
-      </div>
+      </Flex>
       <List
         loading={isFetching}
         itemLayout="horizontal"
         dataSource={posts}
         renderItem={(post) => (
-          <List.Item
-            style={{ alignItems: 'flex-start' }}
-            actions={
-              post.user.id === authenticatedUser?.id
-                ? [
-                    <Button type="text" key="edit" icon={<EditOutlined />}></Button>,
-                    <Button type="text" key="delete" icon={<DeleteOutlined />}></Button>,
-                  ]
-                : []
-            }
-          >
+          <List.Item style={{ alignItems: 'flex-start' }}>
             <Flex vertical style={{ width: '100%' }}>
-              <Flex gap={'.5rem'}>
-                <Text strong>{post.title}</Text>
-                <Link type="secondary">{post.user.name}</Link>
+              <Flex justify="space-between">
+                <Flex vertical>
+                  <Flex gap={'.5rem'}>
+                    <Text strong>{post.title}</Text>
+                    <Link type="secondary">{post.user.name}</Link>
+                  </Flex>
+                  <Text>{post.body}</Text>
+                  <Button
+                    className="grey-link-button"
+                    type="link"
+                    icon={<CommentOutlined />}
+                    style={{ alignSelf: 'flex-start', padding: 0 }}
+                    onClick={() => toggleComments(post.id)}
+                  >
+                    {post.comments.length === 0 && 'No comments yet'}
+                    {post.comments.length === 1 && '1 comment'}
+                    {post.comments.length > 1 && `${post.comments.length} comments`}
+                  </Button>
+                </Flex>
+                <Button type="text" icon={<MoreOutlined />}></Button>
               </Flex>
-              <Text>{post.body}</Text>
-              {post.comments.length > 0 && (
-                <Collapse ghost>
-                  <Panel header={`Show ${post.comments.length} comments`} key="1">
-                    <List
-                      dataSource={post.comments}
-                      renderItem={(comment) => (
-                        <List.Item style={{ background: 'whitesmoke', padding: '1rem', borderRadius: '.5rem' }}>
+              <Collapse activeKey={expandedPostId === post.id ? '1' : undefined} ghost>
+                <Panel header="" key="1" showArrow={false}>
+                  <List
+                    style={{ marginTop: '.5rem' }}
+                    dataSource={post.comments}
+                    renderItem={(comment) => (
+                      <List.Item style={{ background: 'whitesmoke', padding: '1rem', borderRadius: '.5rem' }}>
+                        <Flex justify="space-between" style={{ width: '100%' }}>
                           <Flex vertical>
                             <Link type="secondary">{comment.user.name}</Link>
                             <Text>{comment.body}</Text>
                           </Flex>
-                          <Flex>
-                            <Button type="text" icon={<EditOutlined />}></Button>
-                            <Button type="text" icon={<DeleteOutlined />}></Button>
-                          </Flex>
-                        </List.Item>
-                      )}
-                    />
-                  </Panel>
-                </Collapse>
-              )}
+                          {comment.user.id === authenticatedUser?.id && (
+                            <Flex>
+                              <Button type="text" icon={<EditOutlined />}></Button>
+                              <Button type="text" icon={<DeleteOutlined />}></Button>
+                            </Flex>
+                          )}
+                        </Flex>
+                      </List.Item>
+                    )}
+                  />
+                </Panel>
+              </Collapse>
             </Flex>
           </List.Item>
         )}

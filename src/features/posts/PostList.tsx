@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Button, Collapse, Dropdown, Empty, Flex, Form, Input, List, MenuProps, Modal, Typography } from 'antd';
+import { Button, Collapse, Dropdown, Empty, Flex, Form, Input, List, Modal, Typography } from 'antd';
 import { createComment, createPost, fetchPosts } from '../../api/api';
 import { Post } from './posts.types';
 import { Comment } from '../comments/comments.types';
@@ -95,6 +95,19 @@ const PostList: React.FC = () => {
     }
   };
 
+  const showDeleteConfirm = (deleteFn: () => void, item: 'post' | 'comment') => {
+    Modal.confirm({
+      title: `Are you sure you want to delete this ${item}?`,
+      content: 'This action cannot be undone.',
+      okText: 'Yes',
+      okType: 'danger',
+      cancelText: 'No',
+      onOk() {
+        deleteFn();
+      },
+    });
+  };
+
   const handleEditPost = (postId: number) => {
     // Add your edit post logic here
     console.log(`Edit post ${postId}`);
@@ -115,7 +128,7 @@ const PostList: React.FC = () => {
     console.log(`Delete comment ${commentId}`);
   };
 
-  const moreMenuPost = (postId: number): MenuProps => ({
+  const moreMenuPost = (postId: number) => ({
     items: [
       {
         key: 'edit',
@@ -127,12 +140,13 @@ const PostList: React.FC = () => {
         key: 'delete',
         icon: <DeleteOutlined />,
         label: 'Delete',
-        onClick: () => handleDeletePost(postId),
+        onClick: () => showDeleteConfirm(() => handleDeletePost(postId), 'post'),
+        danger: true,
       },
     ],
   });
 
-  const moreMenuComment = (commentId: number): MenuProps => ({
+  const moreMenuComment = (commentId: number) => ({
     items: [
       {
         key: 'edit',
@@ -144,7 +158,8 @@ const PostList: React.FC = () => {
         key: 'delete',
         icon: <DeleteOutlined />,
         label: 'Delete',
-        onClick: () => handleDeleteComment(commentId),
+        onClick: () => showDeleteConfirm(() => handleDeleteComment(commentId), 'comment'),
+        danger: true,
       },
     ],
   });

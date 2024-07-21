@@ -1,11 +1,19 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Collapse, Flex, Form, Input, List, Modal, Typography } from 'antd';
-import { createPost, fetchPosts } from '../../api/api';
+import { createComment, createPost, fetchPosts } from '../../api/api';
 import { Post } from './posts.types';
+import { Comment } from '../comments/comments.types';
 import { AxiosResponse } from 'axios';
 import { ApiResponse } from '../../api/api.types';
 import { useAuth } from '../auth/AuthContext';
-import { CommentOutlined, DeleteOutlined, EditOutlined, MoreOutlined, ReloadOutlined } from '@ant-design/icons';
+import {
+  CommentOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  MoreOutlined,
+  ReloadOutlined,
+  SendOutlined,
+} from '@ant-design/icons';
 
 const { Text, Link } = Typography;
 const { Panel } = Collapse;
@@ -17,6 +25,7 @@ const PostList: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
   const [expandedPostId, setExpandedPostId] = useState<number | null>(null);
+  const [newComment, setNewComment] = useState<string>('');
   const [form] = Form.useForm();
 
   const loadPosts = useCallback(async () => {
@@ -60,6 +69,26 @@ const PostList: React.FC = () => {
 
   const toggleComments = (postId: number) => {
     setExpandedPostId(expandedPostId === postId ? null : postId);
+    setNewComment(''); // Reset new comment input when toggling
+  };
+
+  const handleCommentChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNewComment(event.target.value);
+  };
+
+  const handleCommentSubmit = async (postId: number) => {
+    if (!newComment.trim()) return;
+
+    try {
+      const response: AxiosResponse<ApiResponse<Comment>> = await createComment(postId, { body: newComment });
+      const updatedPosts = posts.map((post) =>
+        post.id === postId ? { ...post, comments: [...post.comments, response.data.data] } : post
+      );
+      setPosts(updatedPosts);
+      setNewComment('');
+    } catch (error) {
+      console.error('Failed to create comment:', error);
+    }
   };
 
   return (
@@ -106,11 +135,35 @@ const PostList: React.FC = () => {
               </Flex>
               <Collapse activeKey={expandedPostId === post.id ? '1' : undefined} ghost>
                 <Panel header="" key="1" showArrow={false}>
+                  <Flex align="center" gap=".25rem" style={{ marginBottom: '1.5rem' }}>
+                    <Input.TextArea
+                      showCount
+                      autoSize
+                      placeholder="Leave a comment..."
+                      rows={1}
+                      maxLength={300}
+                      value={newComment}
+                      onChange={handleCommentChange}
+                    />
+                    <Button
+                      type="primary"
+                      onClick={() => handleCommentSubmit(post.id)}
+                      disabled={!newComment.trim()}
+                      icon={<SendOutlined />}
+                    ></Button>
+                  </Flex>
                   <List
-                    style={{ marginTop: '.5rem' }}
                     dataSource={post.comments}
                     renderItem={(comment) => (
-                      <List.Item style={{ background: 'whitesmoke', padding: '1rem', borderRadius: '.5rem' }}>
+                      <List.Item
+                        style={{
+                          border: 'none',
+                          marginTop: '.5rem',
+                          background: 'whitesmoke',
+                          padding: '1rem',
+                          borderRadius: '.5rem',
+                        }}
+                      >
                         <Flex justify="space-between" style={{ width: '100%' }}>
                           <Flex vertical>
                             <Link type="secondary">{comment.user.name}</Link>

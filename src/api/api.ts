@@ -41,8 +41,8 @@ export const updatePost = (id: string, post: { title: string; content: string })
 export const deletePost = (id: string) => api.delete(`/posts/${id}`);
 
 // Comments
-export const createComment = (postId: string, comment: { content: string }) =>
-  api.post(`/posts/${postId}/comments`, comment);
+export const createComment = (postId: number, comment: { body: string }) =>
+  api.post(`/posts/${postId}/comments`, { comment });
 export const fetchComments = (postId: string) => api.get(`/posts/${postId}/comments`);
 export const fetchComment = (postId: string, commentId: string) => api.get(`/posts/${postId}/comments/${commentId}`);
 export const updateComment = (postId: string, commentId: string, comment: { content: string }) =>

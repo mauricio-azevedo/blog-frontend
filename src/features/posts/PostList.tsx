@@ -4,10 +4,12 @@ import { fetchPosts } from '../../api/api';
 import { Post } from './posts.types';
 import { AxiosResponse } from 'axios';
 import { ApiResponse } from '../../api/api.types';
+import { useAuth } from '../auth/AuthContext';
 
 const { Text, Link } = Typography;
 
 const PostList: React.FC = () => {
+  const { authenticatedUser } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
@@ -23,7 +25,13 @@ const PostList: React.FC = () => {
       itemLayout="horizontal"
       dataSource={posts}
       renderItem={(post) => (
-        <List.Item actions={[<Button>Edit</Button>, <Button>Delete</Button>]}>
+        <List.Item
+          actions={
+            post.user.id === authenticatedUser?.id
+              ? [<Button key="edit">Edit</Button>, <Button key="delete">Delete</Button>]
+              : []
+          }
+        >
           <Flex vertical>
             <Flex gap={'.5rem'}>
               <Text strong>{post.title}</Text>

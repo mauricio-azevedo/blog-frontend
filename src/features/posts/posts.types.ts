@@ -5,6 +5,7 @@ import { Comment } from '../comments/comments.types';
 export interface Post extends Record {
   title: string;
   body: string;
+  user_id: number;
   user: User;
   comments: Comment;
 }

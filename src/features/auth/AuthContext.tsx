@@ -4,6 +4,7 @@ import { User } from '../users/users.types';
 
 interface AuthContextType {
   isAuthenticated: () => boolean;
+  authenticatedUser: User | null;
   login: (user: User) => void;
   logout: () => void;
 }
@@ -37,7 +38,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     navigate('/sign-in');
   };
 
-  return <AuthContext.Provider value={{ isAuthenticated, login, logout }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ authenticatedUser, isAuthenticated, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Button, Collapse, Flex, Form, Input, List, Modal, Typography } from 'antd';
+import { Button, Collapse, Dropdown, Flex, Form, Input, List, MenuProps, Modal, Typography } from 'antd';
 import { createComment, createPost, fetchPosts } from '../../api/api';
 import { Post } from './posts.types';
 import { Comment } from '../comments/comments.types';
@@ -95,6 +95,60 @@ const PostList: React.FC = () => {
     }
   };
 
+  const handleEditPost = (postId: number) => {
+    // Add your edit post logic here
+    console.log(`Edit post ${postId}`);
+  };
+
+  const handleDeletePost = (postId: number) => {
+    // Add your delete post logic here
+    console.log(`Delete post ${postId}`);
+  };
+
+  const handleEditComment = (commentId: number) => {
+    // Add your edit comment logic here
+    console.log(`Edit comment ${commentId}`);
+  };
+
+  const handleDeleteComment = (commentId: number) => {
+    // Add your delete comment logic here
+    console.log(`Delete comment ${commentId}`);
+  };
+
+  const moreMenuPost = (postId: number): MenuProps => ({
+    items: [
+      {
+        key: 'edit',
+        icon: <EditOutlined />,
+        label: 'Edit',
+        onClick: () => handleEditPost(postId),
+      },
+      {
+        key: 'delete',
+        icon: <DeleteOutlined />,
+        label: 'Delete',
+        onClick: () => handleDeletePost(postId),
+      },
+    ],
+  });
+
+  const moreMenuComment = (commentId: number): MenuProps => ({
+    items: [
+      {
+        key: 'edit',
+        icon: <EditOutlined />,
+        label: 'Edit',
+        onClick: () => handleEditComment(commentId),
+      },
+      {
+        key: 'delete',
+        icon: <DeleteOutlined />,
+        label: 'Delete',
+        onClick: () => handleDeleteComment(commentId),
+      },
+    ],
+  });
+
   return (
     <>
       <Flex justify="space-between" style={{ marginBottom: '16px' }}>
@@ -135,7 +189,9 @@ const PostList: React.FC = () => {
                     {post.comments.length > 1 && `${post.comments.length} comments`}
                   </Button>
                 </Flex>
-                <Button type="text" icon={<MoreOutlined />}></Button>
+                <Dropdown menu={moreMenuPost(post.id)} trigger={['click']}>
+                  <Button type="text" icon={<MoreOutlined />} />
+                </Dropdown>
               </Flex>
               <Collapse activeKey={expandedPostId === post.id ? '1' : undefined} ghost>
                 <Panel header="" key="1" showArrow={false}>
@@ -178,10 +234,9 @@ const PostList: React.FC = () => {
                               <Text>{comment.body}</Text>
                             </Flex>
                             {comment.user.id === authenticatedUser?.id && (
-                              <Flex>
-                                <Button type="text" icon={<EditOutlined />}></Button>
-                                <Button type="text" icon={<DeleteOutlined />}></Button>
-                              </Flex>
+                              <Dropdown menu={moreMenuComment(comment.id)} trigger={['click']}>
+                                <Button type="text" icon={<MoreOutlined />} />
+                              </Dropdown>
                             )}
                           </Flex>
                         </List.Item>

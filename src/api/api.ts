@@ -37,7 +37,7 @@ export const signOut = () => api.delete('/users/sign_out');
 export const createPost = (post: { title: string; body: string }) => api.post<ApiResponse<Post>>('/posts', { post });
 export const fetchPosts = () => api.get<ApiResponse<Post[]>>('/posts');
 export const fetchPost = (id: string) => api.get(`/posts/${id}`);
-export const updatePost = (id: string, post: { title: string; content: string }) => api.put(`/posts/${id}`, post);
+export const updatePost = (id: string, post: { title: string; body: string }) => api.put(`/posts/${id}`, { post });
 export const deletePost = (id: string) => api.delete(`/posts/${id}`);
 
 // Comments

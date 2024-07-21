@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Collapse, Dropdown, Empty, Flex, Form, Input, List, Modal, Typography } from 'antd';
-import { createComment, createPost, fetchPosts, deleteComment, deletePost } from '../../api/api';
+import { createComment, createPost, fetchPosts, deleteComment, deletePost, updatePost } from '../../api/api';
 import { Post } from './posts.types';
 import { Comment } from '../comments/comments.types';
 import { AxiosResponse } from 'axios';
@@ -21,13 +21,16 @@ const { Panel } = Collapse;
 const PostList: React.FC = () => {
   const { authenticatedUser } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
   const [isCommenting, setIsCommenting] = useState(false);
   const [expandedPostId, setExpandedPostId] = useState<number | null>(null);
   const [newComment, setNewComment] = useState<string>('');
+  const [editPost, setEditPost] = useState<Post | null>(null);
   const [form] = Form.useForm();
+  const [editForm] = Form.useForm();
 
   const loadPosts = useCallback(async () => {
     try {
@@ -45,12 +48,12 @@ const PostList: React.FC = () => {
     loadPosts();
   }, [loadPosts]);
 
-  const showModal = () => {
-    setIsModalVisible(true);
+  const showCreateModal = () => {
+    setIsCreateModalVisible(true);
   };
 
-  const handleCancel = () => {
-    setIsModalVisible(false);
+  const handleCreateCancel = () => {
+    setIsCreateModalVisible(false);
     form.resetFields();
   };
 
@@ -59,10 +62,39 @@ const PostList: React.FC = () => {
       setIsCreating(true);
       const response: AxiosResponse<ApiResponse<Post>> = await createPost(values);
       setPosts([response.data.data, ...posts]);
-      setIsModalVisible(false);
+      setIsCreateModalVisible(false);
       form.resetFields();
     } catch (error) {
       console.error('Failed to create post:', error);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const showEditModal = (post: Post) => {
+    setEditPost(post);
+    editForm.setFieldsValue({ title: post.title, body: post.body });
+    setIsEditModalVisible(true);
+  };
+
+  const handleEditCancel = () => {
+    setIsEditModalVisible(false);
+    setEditPost(null);
+    editForm.resetFields();
+  };
+
+  const handleEdit = async (values: any) => {
+    if (!editPost) return;
+    try {
+      setIsCreating(true);
+      const response: AxiosResponse<ApiResponse<Post>> = await updatePost(editPost.id.toString(), values);
+      const updatedPosts = posts.map((post) => (post.id === editPost.id ? response.data.data : post));
+      setPosts(updatedPosts);
+      setIsEditModalVisible(false);
+      setEditPost(null);
+      editForm.resetFields();
+    } catch (error) {
+      console.error('Failed to update post:', error);
     } finally {
       setIsCreating(false);
     }
@@ -109,8 +141,10 @@ const PostList: React.FC = () => {
   };
 
   const handleEditPost = (postId: number) => {
-    // Add your edit post logic here
-    console.log(`Edit post ${postId}`);
+    const post = posts.find((p) => p.id === postId);
+    if (post) {
+      showEditModal(post);
+    }
   };
 
   const handleDeletePost = async (postId: number) => {
@@ -189,7 +223,7 @@ const PostList: React.FC = () => {
   return (
     <>
       <Flex justify="space-between" style={{ marginBottom: '16px' }}>
-        <Button type="primary" onClick={showModal} disabled={isFetching || isCommenting}>
+        <Button type="primary" onClick={showCreateModal} disabled={isFetching || isCommenting}>
           Create Post
         </Button>
         <Button
@@ -291,8 +325,23 @@ const PostList: React.FC = () => {
           </List.Item>
         )}
       />
-      <Modal title="Create Post" open={isModalVisible} onCancel={handleCancel} footer={null}>
+      <Modal title="Create Post" open={isCreateModalVisible} onCancel={handleCreateCancel} footer={null}>
         <Form form={form} layout="vertical" onFinish={handleCreate}>
+          <Form.Item name="title" label="Title" rules={[{ required: true, message: 'Please enter the title' }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="body" label="Body" rules={[{ required: true, message: 'Please enter the body' }]}>
+            <Input.TextArea rows={4} />
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={isCreating}>
+              Submit
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+      <Modal title="Edit Post" open={isEditModalVisible} onCancel={handleEditCancel} footer={null}>
+        <Form form={editForm} layout="vertical" onFinish={handleEdit}>
           <Form.Item name="title" label="Title" rules={[{ required: true, message: 'Please enter the title' }]}>
             <Input />
           </Form.Item>

@@ -1,8 +1,9 @@
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosResponse, HttpStatusCode } from 'axios';
 import { message as antdMessage } from 'antd';
 import { ApiResponse } from './api.types';
 import { Post } from '../features/posts/posts.types';
 import { User } from '../features/users/users.types';
+import authEventEmitter from '../features/auth/AuthEventEmitter';
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_BASE_URL,
@@ -10,22 +11,30 @@ const api = axios.create({
 });
 
 api.interceptors.response.use(
-  (response: AxiosResponse<ApiResponse<unknown>>) => {
-    const message: string | undefined = response.data?.message;
-    if (message) {
-      antdMessage.success(message);
-    }
-    return response;
+  (r: AxiosResponse<ApiResponse<unknown>>) => {
+    handleMessages(r.data?.message, r.data?.ok);
+    return r;
   },
-  (error) => {
-    if (error.response && error.response.data && error.response.data.message) {
-      antdMessage.error(error.response.data.message);
-    } else {
-      antdMessage.error('An unexpected error occurred');
-    }
-    return Promise.reject(error);
+  (e) => {
+    handleMessages(e.response?.data?.message, e.response?.data?.ok);
+    handleUnauthorized(e.response?.status);
+    return Promise.reject(e);
   }
 );
+
+const handleMessages = (message: string | undefined, ok: boolean | undefined): void => {
+  if (message) {
+    ok ? antdMessage.success(message) : antdMessage.error(message);
+  } else {
+    antdMessage.error('An unexpected error occurred');
+  }
+};
+
+const handleUnauthorized = (status: HttpStatusCode | undefined): void => {
+  if (status === 401) {
+    authEventEmitter.emit('logout');
+  }
+};
 
 // Users
 export const signUp = (user: { email: string; password: string }) => api.post<ApiResponse<User>>('/users', { user });
@@ -45,7 +54,7 @@ export const createComment = (postId: number, comment: { body: string }) =>
   api.post(`/posts/${postId}/comments`, { comment });
 export const fetchComments = (postId: string) => api.get(`/posts/${postId}/comments`);
 export const fetchComment = (postId: string, commentId: string) => api.get(`/posts/${postId}/comments/${commentId}`);
-export const updateComment = (postId: string, commentId: string, comment: { content: string }) =>
-  api.put(`/posts/${postId}/comments/${commentId}`, comment);
+export const updateComment = (postId: string, commentId: string, comment: { body: string }) =>
+  api.put(`/posts/${postId}/comments/${commentId}`, { comment });
 export const deleteComment = (postId: string, commentId: string) =>
   api.delete(`/posts/${postId}/comments/${commentId}`);

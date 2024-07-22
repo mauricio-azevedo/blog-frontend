@@ -3,11 +3,11 @@ import { Button, Collapse, Dropdown, Empty, Flex, Form, Input, List, Modal, Typo
 import {
   createComment,
   createPost,
-  fetchPosts,
   deleteComment,
   deletePost,
-  updatePost,
+  fetchPosts,
   updateComment,
+  updatePost,
 } from '../../api/api';
 import { Post } from './posts.types';
 import { Comment } from '../comments/comments.types';
@@ -275,7 +275,7 @@ const PostList: React.FC = () => {
 
   return (
     <>
-      <Flex justify="space-between" style={{ marginBottom: '16px' }}>
+      <Flex justify="space-between" gap=".25rem" style={{ marginBottom: '16px' }}>
         <Button type="primary" onClick={showCreatePostModal} disabled={isFetching || isCommenting}>
           Create Post
         </Button>
@@ -292,7 +292,7 @@ const PostList: React.FC = () => {
         itemLayout="horizontal"
         dataSource={posts}
         renderItem={(post) => (
-          <List.Item style={{ alignItems: 'flex-start' }}>
+          <List.Item style={{ alignItems: 'flex-start', overflow: 'hidden' }}>
             <Flex vertical style={{ width: '100%' }}>
               <Flex justify="space-between">
                 <Flex vertical>

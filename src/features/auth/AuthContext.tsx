@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User } from '../users/users.types';
+import authEventEmitter from './AuthEventEmitter';
 
 interface AuthContextType {
   isAuthenticated: () => boolean;
@@ -8,6 +9,8 @@ interface AuthContextType {
   login: (user: User) => void;
   logout: () => void;
 }
+
+// TODO: Handle auth verification via API only, not localStorage
 
 const fetchAuthenticated = (): User | null => {
   const storedAuthenticated: string | null = localStorage.getItem('authenticatedUser');
@@ -33,10 +36,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     navigate('/posts');
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setAuthenticatedUser(null);
     navigate('/sign-in');
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    authEventEmitter.on('logout', logout);
+
+    return () => {
+      authEventEmitter.off('logout', logout);
+    };
+  }, [logout]);
 
   return (
     <AuthContext.Provider value={{ authenticatedUser, isAuthenticated, login, logout }}>

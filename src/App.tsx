@@ -7,7 +7,6 @@ import SignUp from './features/auth/SignUp';
 import PostList from './features/posts/PostList';
 import ProtectedRoute from './features/auth/ProtectedRoute';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
-import { signOut } from './api/api';
 
 const { Header, Sider, Content } = Layout;
 
@@ -24,7 +23,6 @@ const MainLayout: React.FC<{
   const onLogout = async () => {
     setIsLoading(true);
     try {
-      await signOut();
       logout();
     } catch (error) {
       console.error('Sign in error:', error);

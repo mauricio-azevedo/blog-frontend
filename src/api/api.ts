@@ -7,8 +7,18 @@ import authEventEmitter from '../features/auth/AuthEventEmitter';
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_BASE_URL,
-  withCredentials: true,
 });
+
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 api.interceptors.response.use(
   (r: AxiosResponse<ApiResponse<unknown>>) => {
@@ -37,10 +47,10 @@ const handleUnauthorized = (status: HttpStatusCode | undefined): void => {
 };
 
 // Users
-export const signUp = (user: { email: string; password: string }) => api.post<ApiResponse<User>>('/users', { user });
+export const signUp = (user: { email: string; password: string }) =>
+  api.post<ApiResponse<{ user: User; token: string }>>('/users', { user });
 export const signIn = (user: { email: string; password: string }) =>
-  api.post<ApiResponse<User>>('/users/sign_in', { user });
-export const signOut = () => api.delete('/users/sign_out');
+  api.post<ApiResponse<{ user: User; token: string }>>('/users/sign_in', { user });
 
 // Posts
 export const createPost = (post: { title: string; body: string }) => api.post<ApiResponse<Post>>('/posts', { post });

@@ -274,153 +274,160 @@ const PostList: React.FC = () => {
   };
 
   return (
-    <>
-      <Flex justify="space-between" gap=".25rem" style={{ marginBottom: '16px' }}>
-        <Button type="primary" onClick={showCreatePostModal} disabled={isFetching || isCommenting}>
-          Create Post
-        </Button>
-        <Button
-          type="link"
-          onClick={loadPosts}
+    <Flex vertical style={{ overflow: 'auto' }}>
+      <Flex vertical style={{ minWidth: 220 }}>
+        <Flex justify="space-between" gap=".25rem" style={{ marginBottom: '16px' }}>
+          <Button type="primary" onClick={showCreatePostModal} disabled={isFetching || isCommenting}>
+            Create Post
+          </Button>
+          <Button
+            type="link"
+            onClick={loadPosts}
+            loading={isFetching}
+            disabled={isFetching || isCommenting}
+            icon={<ReloadOutlined />}
+          ></Button>
+        </Flex>
+        <List
           loading={isFetching}
-          disabled={isFetching || isCommenting}
-          icon={<ReloadOutlined />}
-        ></Button>
-      </Flex>
-      <List
-        loading={isFetching}
-        itemLayout="horizontal"
-        dataSource={posts}
-        renderItem={(post) => (
-          <List.Item style={{ alignItems: 'flex-start', overflow: 'hidden' }}>
-            <Flex vertical style={{ width: '100%' }}>
-              <Flex justify="space-between">
-                <Flex vertical>
-                  <Flex gap={'.5rem'}>
-                    <Text strong>{post.title}</Text>
-                    <Link type="secondary">{post.user.name}</Link>
-                  </Flex>
-                  <Text>{post.body}</Text>
-                  <Button
-                    className="grey-link-button"
-                    type="link"
-                    icon={<CommentOutlined />}
-                    style={{ alignSelf: 'flex-start', padding: 0 }}
-                    onClick={() => toggleComments(post.id)}
-                  >
-                    {post.comments.length === 0 && 'No comments yet'}
-                    {post.comments.length === 1 && '1 comment'}
-                    {post.comments.length > 1 && `${post.comments.length} comments`}
-                  </Button>
-                </Flex>
-                {post.user.id === authenticatedUser?.id && (
-                  <Dropdown menu={moreMenuPost(post.id)} trigger={['click']}>
-                    <Button type="text" icon={<MoreOutlined />} />
-                  </Dropdown>
-                )}
-              </Flex>
-              <Collapse activeKey={expandedPostId === post.id ? '1' : undefined} ghost>
-                <Panel header="" key="1" showArrow={false}>
-                  <Flex align="center" gap=".25rem" style={{ marginBottom: '1.5rem' }}>
-                    <Input.TextArea
-                      showCount
-                      autoSize
-                      placeholder="Leave a comment..."
-                      rows={1}
-                      maxLength={300}
-                      value={newComment}
-                      onChange={handleCommentChange}
-                    />
+          itemLayout="horizontal"
+          dataSource={posts}
+          renderItem={(post) => (
+            <List.Item style={{ alignItems: 'flex-start', overflow: 'hidden' }}>
+              <Flex vertical style={{ width: '100%' }}>
+                <Flex justify="space-between">
+                  <Flex vertical style={{ overflow: 'hidden' }}>
+                    <Flex gap={'.5rem'}>
+                      <Text strong style={{ whiteSpace: 'nowrap' }}>
+                        {post.title}
+                      </Text>
+                      <Link type="secondary" ellipsis>
+                        {post.user.name}
+                      </Link>
+                    </Flex>
+                    <Text>{post.body}</Text>
                     <Button
-                      type="primary"
-                      onClick={() => handleCommentSubmit(post.id)}
-                      disabled={!newComment.trim()}
-                      loading={isCommenting}
-                      icon={<SendOutlined />}
-                    ></Button>
+                      className="grey-link-button"
+                      type="link"
+                      icon={<CommentOutlined />}
+                      style={{ alignSelf: 'flex-start', padding: 0 }}
+                      onClick={() => toggleComments(post.id)}
+                    >
+                      {post.comments.length === 0 && 'No comments yet'}
+                      {post.comments.length === 1 && '1 comment'}
+                      {post.comments.length > 1 && `${post.comments.length} comments`}
+                    </Button>
                   </Flex>
-                  {post.comments.length === 0 ? (
-                    <Empty description={<Text type="secondary">Be the first to comment!</Text>}></Empty>
-                  ) : (
-                    <List
-                      dataSource={post.comments}
-                      renderItem={(comment) => (
-                        <List.Item
-                          style={{
-                            border: 'none',
-                            marginTop: '.5rem',
-                            background: 'whitesmoke',
-                            padding: '1rem',
-                            borderRadius: '.5rem',
-                          }}
-                        >
-                          <Flex justify="space-between" style={{ width: '100%' }}>
-                            <Flex vertical>
-                              <Link type="secondary">{comment.user.name}</Link>
-                              <Text>{comment.body}</Text>
-                            </Flex>
-                            {(authenticatedUser?.id === comment.user.id || authenticatedUser?.id === post.user.id) && (
-                              <Dropdown
-                                menu={moreMenuComment(post.id, comment.id, comment.user.id, post.user.id)}
-                                trigger={['click']}
-                              >
-                                <Button type="text" icon={<MoreOutlined />} />
-                              </Dropdown>
-                            )}
-                          </Flex>
-                        </List.Item>
-                      )}
-                    />
+                  {post.user.id === authenticatedUser?.id && (
+                    <Dropdown menu={moreMenuPost(post.id)} trigger={['click']}>
+                      <Button type="text" icon={<MoreOutlined />} />
+                    </Dropdown>
                   )}
-                </Panel>
-              </Collapse>
-            </Flex>
-          </List.Item>
-        )}
-      />
-      <Modal title="Create Post" open={isCreateModalVisible} onCancel={handleCreatePostCancel} footer={null}>
-        <Form form={form} layout="vertical" onFinish={handleCreatePostSubmit}>
-          <Form.Item name="title" label="Title" rules={[{ required: true, message: 'Please enter the title' }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="body" label="Body" rules={[{ required: true, message: 'Please enter the body' }]}>
-            <Input.TextArea rows={4} />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={isCreating}>
-              Submit
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
-      <Modal title="Edit Post" open={isEditModalVisible} onCancel={handleEditPostCancel} footer={null}>
-        <Form form={editForm} layout="vertical" onFinish={handleEditPostSubmit}>
-          <Form.Item name="title" label="Title" rules={[{ required: true, message: 'Please enter the title' }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="body" label="Body" rules={[{ required: true, message: 'Please enter the body' }]}>
-            <Input.TextArea rows={4} />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={isCreating}>
-              Submit
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
-      <Modal title="Edit Comment" open={isEditCommentModalVisible} onCancel={handleEditCommentCancel} footer={null}>
-        <Form form={editCommentForm} layout="vertical" onFinish={handleEditCommentSubmit}>
-          <Form.Item name="body" label="Body" rules={[{ required: true, message: 'Please enter the body' }]}>
-            <Input.TextArea rows={4} />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={isCreating}>
-              Submit
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
-    </>
+                </Flex>
+                <Collapse activeKey={expandedPostId === post.id ? '1' : undefined} ghost>
+                  <Panel header="" key="1" showArrow={false}>
+                    <Flex align="center" gap=".25rem" style={{ marginBottom: '1.5rem' }}>
+                      <Input.TextArea
+                        showCount
+                        autoSize
+                        placeholder="Leave a comment..."
+                        rows={1}
+                        maxLength={300}
+                        value={newComment}
+                        onChange={handleCommentChange}
+                      />
+                      <Button
+                        type="primary"
+                        onClick={() => handleCommentSubmit(post.id)}
+                        disabled={!newComment.trim()}
+                        loading={isCommenting}
+                        icon={<SendOutlined />}
+                      ></Button>
+                    </Flex>
+                    {post.comments.length === 0 ? (
+                      <Empty description={<Text type="secondary">Be the first to comment!</Text>}></Empty>
+                    ) : (
+                      <List
+                        dataSource={post.comments}
+                        renderItem={(comment) => (
+                          <List.Item
+                            style={{
+                              border: 'none',
+                              marginTop: '.5rem',
+                              background: 'whitesmoke',
+                              padding: '1rem',
+                              borderRadius: '.5rem',
+                            }}
+                          >
+                            <Flex justify="space-between" style={{ width: '100%' }}>
+                              <Flex vertical>
+                                <Link type="secondary">{comment.user.name}</Link>
+                                <Text>{comment.body}</Text>
+                              </Flex>
+                              {(authenticatedUser?.id === comment.user.id ||
+                                authenticatedUser?.id === post.user.id) && (
+                                <Dropdown
+                                  menu={moreMenuComment(post.id, comment.id, comment.user.id, post.user.id)}
+                                  trigger={['click']}
+                                >
+                                  <Button type="text" icon={<MoreOutlined />} />
+                                </Dropdown>
+                              )}
+                            </Flex>
+                          </List.Item>
+                        )}
+                      />
+                    )}
+                  </Panel>
+                </Collapse>
+              </Flex>
+            </List.Item>
+          )}
+        />
+        <Modal title="Create Post" open={isCreateModalVisible} onCancel={handleCreatePostCancel} footer={null}>
+          <Form form={form} layout="vertical" onFinish={handleCreatePostSubmit}>
+            <Form.Item name="title" label="Title" rules={[{ required: true, message: 'Please enter the title' }]}>
+              <Input />
+            </Form.Item>
+            <Form.Item name="body" label="Body" rules={[{ required: true, message: 'Please enter the body' }]}>
+              <Input.TextArea rows={4} />
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" htmlType="submit" loading={isCreating}>
+                Submit
+              </Button>
+            </Form.Item>
+          </Form>
+        </Modal>
+        <Modal title="Edit Post" open={isEditModalVisible} onCancel={handleEditPostCancel} footer={null}>
+          <Form form={editForm} layout="vertical" onFinish={handleEditPostSubmit}>
+            <Form.Item name="title" label="Title" rules={[{ required: true, message: 'Please enter the title' }]}>
+              <Input />
+            </Form.Item>
+            <Form.Item name="body" label="Body" rules={[{ required: true, message: 'Please enter the body' }]}>
+              <Input.TextArea rows={4} />
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" htmlType="submit" loading={isCreating}>
+                Submit
+              </Button>
+            </Form.Item>
+          </Form>
+        </Modal>
+        <Modal title="Edit Comment" open={isEditCommentModalVisible} onCancel={handleEditCommentCancel} footer={null}>
+          <Form form={editCommentForm} layout="vertical" onFinish={handleEditCommentSubmit}>
+            <Form.Item name="body" label="Body" rules={[{ required: true, message: 'Please enter the body' }]}>
+              <Input.TextArea rows={4} />
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" htmlType="submit" loading={isCreating}>
+                Submit
+              </Button>
+            </Form.Item>
+          </Form>
+        </Modal>
+      </Flex>
+    </Flex>
   );
 };
 

@@ -22,6 +22,7 @@ import {
   ReloadOutlined,
   SendOutlined,
 } from '@ant-design/icons';
+import { timeAgo } from '../../shared/utils/date.utils';
 
 const { Text, Link } = Typography;
 const { Panel } = Collapse;
@@ -295,7 +296,7 @@ const PostList: React.FC = () => {
           renderItem={(post) => (
             <List.Item style={{ alignItems: 'flex-start', overflow: 'hidden' }}>
               <Flex vertical style={{ width: '100%' }}>
-                <Flex justify="space-between">
+                <Flex justify="space-between" gap={'.25rem'}>
                   <Flex vertical style={{ overflow: 'hidden' }}>
                     <Flex gap={'.5rem'}>
                       <Text strong style={{ whiteSpace: 'nowrap' }}>
@@ -318,6 +319,9 @@ const PostList: React.FC = () => {
                       {post.comments.length > 1 && `${post.comments.length} comments`}
                     </Button>
                   </Flex>
+                  <Link type="secondary" style={{ whiteSpace: 'nowrap' }}>
+                    {timeAgo(post.created_at)}
+                  </Link>
                   {post.user.id === authenticatedUser?.id && (
                     <Dropdown menu={moreMenuPost(post.id)} trigger={['click']}>
                       <Button type="text" icon={<MoreOutlined />} />

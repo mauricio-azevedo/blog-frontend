@@ -9,7 +9,7 @@ import {
   updateComment,
   updatePost,
 } from '../../api/api';
-import { Post } from './posts.types';
+import { Post, PostsPaginated } from './posts.types';
 import { Comment } from '../comments/comments.types';
 import { AxiosResponse } from 'axios';
 import { ApiResponse } from '../../api/api.types';
@@ -36,6 +36,8 @@ const PostList: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
   const [isCommenting, setIsCommenting] = useState(false);
+  const [isReloading, setIsReloading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [expandedPostId, setExpandedPostId] = useState<number | null>(null);
   const [newComment, setNewComment] = useState<string>('');
   const [editPost, setEditPost] = useState<Post | null>(null);
@@ -43,22 +45,49 @@ const PostList: React.FC = () => {
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
   const [editCommentForm] = Form.useForm();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
 
-  const loadPosts = useCallback(async () => {
+  useEffect(() => {
+    setHasMore(posts.length < totalCount);
+  }, [posts.length, totalCount]);
+
+  const loadPosts = async (page: number) => {
     try {
       setIsFetching(true);
-      const response: AxiosResponse<ApiResponse<Post[]>> = await fetchPosts();
-      setPosts(response.data.data ?? []);
+      const response: AxiosResponse<ApiResponse<PostsPaginated>> = await fetchPosts(page);
+      const { pagination, posts: fetchedPosts } = response.data.data;
+      setPosts((prevPosts) => [...prevPosts, ...fetchedPosts]);
+      setTotalCount(pagination.total_count);
     } catch (error) {
       console.error('Failed to fetch posts:', error);
     } finally {
       setIsFetching(false);
     }
-  }, []);
+  };
 
+  const loadPostsCallback = useCallback(loadPosts, []);
   useEffect(() => {
-    loadPosts();
-  }, [loadPosts]);
+    loadPostsCallback(currentPage);
+  }, [currentPage, loadPostsCallback]);
+
+  const onPostsReload = async () => {
+    setIsReloading(true);
+    const newCurrentPage: number = 1;
+    setPosts([]);
+    setCurrentPage(newCurrentPage);
+    await loadPosts(newCurrentPage);
+    setIsReloading(false);
+  };
+
+  const onPostsLoadMore = async () => {
+    setIsLoadingMore(true);
+    const newCurrentPage: number = currentPage + 1;
+    setCurrentPage(newCurrentPage);
+    await loadPosts(newCurrentPage);
+    setIsLoadingMore(false);
+  };
 
   const showCreatePostModal = () => {
     setIsCreateModalVisible(true);
@@ -283,14 +312,14 @@ const PostList: React.FC = () => {
           </Button>
           <Button
             type="link"
-            onClick={loadPosts}
-            loading={isFetching}
+            onClick={onPostsReload}
+            loading={isReloading}
             disabled={isFetching || isCommenting}
             icon={<ReloadOutlined />}
           ></Button>
         </Flex>
         <List
-          loading={isFetching}
+          loading={isFetching && currentPage === 1}
           itemLayout="horizontal"
           dataSource={posts}
           renderItem={(post) => (
@@ -299,7 +328,6 @@ const PostList: React.FC = () => {
                 <Flex vertical style={{ overflow: 'hidden', width: '100%' }}>
                   <Flex gap=".5rem" justify="space-between" align="center" flex="1">
                     <Flex gap=".5rem" style={{ maxWidth: 190 }}>
-                      {' '}
                       <Text strong style={{ whiteSpace: 'nowrap' }}>
                         {post.title}
                       </Text>
@@ -391,6 +419,17 @@ const PostList: React.FC = () => {
             </List.Item>
           )}
         />
+        {hasMore && (
+          <Button
+            type="primary"
+            onClick={onPostsLoadMore}
+            loading={isLoadingMore}
+            disabled={isFetching}
+            style={{ marginTop: '16px' }}
+          >
+            Load More
+          </Button>
+        )}
         <Modal title="Create Post" open={isCreateModalVisible} onCancel={handleCreatePostCancel} footer={null}>
           <Form form={form} layout="vertical" onFinish={handleCreatePostSubmit}>
             <Form.Item name="title" label="Title" rules={[{ required: true, message: 'Please enter the title' }]}>

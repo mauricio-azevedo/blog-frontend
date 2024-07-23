@@ -1,7 +1,7 @@
 import axios, { AxiosResponse, HttpStatusCode } from 'axios';
 import { message as antdMessage } from 'antd';
 import { ApiResponse } from './api.types';
-import { Post } from '../features/posts/posts.types';
+import { Post, PostsPaginated } from '../features/posts/posts.types';
 import { User } from '../features/users/users.types';
 import authEventEmitter from '../features/auth/AuthEventEmitter';
 
@@ -54,7 +54,7 @@ export const signIn = (user: { email: string; password: string }) =>
 
 // Posts
 export const createPost = (post: { title: string; body: string }) => api.post<ApiResponse<Post>>('/posts', { post });
-export const fetchPosts = () => api.get<ApiResponse<Post[]>>('/posts');
+export const fetchPosts = (page: number) => api.get<ApiResponse<PostsPaginated>>(`/posts?page=${page}&limit=5`);
 export const fetchPost = (id: string) => api.get(`/posts/${id}`);
 export const updatePost = (id: string, post: { title: string; body: string }) => api.put(`/posts/${id}`, { post });
 export const deletePost = (id: string) => api.delete(`/posts/${id}`);

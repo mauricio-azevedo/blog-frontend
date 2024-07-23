@@ -296,9 +296,10 @@ const PostList: React.FC = () => {
           renderItem={(post) => (
             <List.Item style={{ alignItems: 'flex-start', overflow: 'hidden' }}>
               <Flex vertical style={{ width: '100%' }}>
-                <Flex justify="space-between" gap={'.25rem'}>
-                  <Flex vertical style={{ overflow: 'hidden' }}>
-                    <Flex gap={'.5rem'}>
+                <Flex vertical style={{ overflow: 'hidden', width: '100%' }}>
+                  <Flex gap=".5rem" justify="space-between" align="center" flex="1">
+                    <Flex gap=".5rem" style={{ maxWidth: 190 }}>
+                      {' '}
                       <Text strong style={{ whiteSpace: 'nowrap' }}>
                         {post.title}
                       </Text>
@@ -306,7 +307,14 @@ const PostList: React.FC = () => {
                         {post.user.name}
                       </Link>
                     </Flex>
-                    <Text>{post.body}</Text>
+                    {post.user.id === authenticatedUser?.id && (
+                      <Dropdown menu={moreMenuPost(post.id)} trigger={['click']}>
+                        <Button type="text" icon={<MoreOutlined />} />
+                      </Dropdown>
+                    )}
+                  </Flex>
+                  <Text>{post.body}</Text>
+                  <Flex justify="space-between" align="center" gap=".25rem">
                     <Button
                       className="grey-link-button"
                       type="link"
@@ -318,15 +326,10 @@ const PostList: React.FC = () => {
                       {post.comments.length === 1 && '1 comment'}
                       {post.comments.length > 1 && `${post.comments.length} comments`}
                     </Button>
+                    <Link type="secondary" style={{ whiteSpace: 'nowrap' }}>
+                      {timeAgo(post.created_at)}
+                    </Link>
                   </Flex>
-                  <Link type="secondary" style={{ whiteSpace: 'nowrap' }}>
-                    {timeAgo(post.created_at)}
-                  </Link>
-                  {post.user.id === authenticatedUser?.id && (
-                    <Dropdown menu={moreMenuPost(post.id)} trigger={['click']}>
-                      <Button type="text" icon={<MoreOutlined />} />
-                    </Dropdown>
-                  )}
                 </Flex>
                 <Collapse activeKey={expandedPostId === post.id ? '1' : undefined} ghost>
                   <Panel header="" key="1" showArrow={false}>

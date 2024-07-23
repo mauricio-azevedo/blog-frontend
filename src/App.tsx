@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { FireOutlined, LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined, MessageOutlined } from '@ant-design/icons';
-import { Button, Layout, Menu, theme } from 'antd';
+import { Button, Layout, Menu, Modal, theme } from 'antd';
 import SignIn from './features/auth/SignIn';
 import SignUp from './features/auth/SignUp';
 import PostList from './features/posts/PostList';
@@ -18,17 +18,17 @@ const MainLayout: React.FC<{
   borderRadiusLG: number;
 }> = ({ children, collapsed, setCollapsed, colorBgContainer, borderRadiusLG }) => {
   const { logout } = useAuth();
-  const [isLoading, setIsLoading] = React.useState(false);
 
-  const onLogout = async () => {
-    setIsLoading(true);
-    try {
-      logout();
-    } catch (error) {
-      console.error('Sign in error:', error);
-    } finally {
-      setIsLoading(false);
-    }
+  const showLogoutConfirm = () => {
+    Modal.confirm({
+      title: `Are you sure you want to logout?`,
+      okText: 'Logout',
+      cancelText: 'Go back',
+      icon: <LogoutOutlined />,
+      onOk() {
+        logout();
+      },
+    });
   };
 
   return (
@@ -69,8 +69,7 @@ const MainLayout: React.FC<{
             aria-label="logout"
             type="text"
             icon={<LogoutOutlined />}
-            onClick={onLogout}
-            loading={isLoading}
+            onClick={showLogoutConfirm}
             style={{
               fontSize: '16px',
               width: 64,

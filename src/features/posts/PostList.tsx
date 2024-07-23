@@ -67,10 +67,9 @@ const PostList: React.FC = () => {
     }
   };
 
-  const loadPostsCallback = useCallback(loadPosts, []);
   useEffect(() => {
-    loadPostsCallback(currentPage);
-  }, [currentPage, loadPostsCallback]);
+    loadPosts(currentPage);
+  }, []);
 
   const onPostsReload = async () => {
     setIsReloading(true);

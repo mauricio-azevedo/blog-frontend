@@ -304,7 +304,7 @@ const PostList: React.FC = () => {
 
   return (
     <Flex vertical style={{ overflow: 'auto', alignItems: 'center' }}>
-      <Flex vertical style={{ minWidth: 220, width: 600 }}>
+      <Flex vertical style={{ minWidth: 220, width: 600, maxWidth: '100%' }}>
         <Flex justify="space-between" gap=".25rem" style={{ marginBottom: '16px' }}>
           <Button type="primary" onClick={showCreatePostModal} disabled={isFetching || isCommenting}>
             Create Post

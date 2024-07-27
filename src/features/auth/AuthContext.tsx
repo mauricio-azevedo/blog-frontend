@@ -1,14 +1,13 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User } from '../users/users.types';
 import authEventEmitter from './AuthEventEmitter';
-import { message as antdMessage } from 'antd';
 
 interface AuthContextType {
   isAuthenticated: () => boolean;
   authenticatedUser: User | null;
   login: (user: User, token: string) => void;
-  logout: () => void;
+  onServerSignOut: () => void;
 }
 
 const fetchAuthenticatedUser = (): User | null => {
@@ -23,36 +22,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const navigate = useNavigate();
 
   useEffect(() => {
-    localStorage.setItem('authenticatedUser', JSON.stringify(authenticatedUser));
+    if (authenticatedUser !== null) {
+      localStorage.setItem('authenticatedUser', JSON.stringify(authenticatedUser));
+    } else {
+      localStorage.removeItem('authenticatedUser');
+    }
   }, [authenticatedUser]);
 
   const isAuthenticated = useCallback(() => {
     return !!localStorage.getItem('token');
   }, []);
 
-  const login = (user: User, token: string) => {
+  const onServerSignIn = (user: User, token: string) => {
     setAuthenticatedUser(user);
     localStorage.setItem('token', token);
     navigate('/posts');
   };
 
-  const logout = useCallback(() => {
+  const onServerSignOut = useCallback(async () => {
     setAuthenticatedUser(null);
     localStorage.removeItem('token');
-    localStorage.removeItem('authenticatedUser');
-    antdMessage.success('Signed out successfully');
     navigate('/sign-in');
   }, [navigate]);
 
   useEffect(() => {
-    authEventEmitter.on('logout', logout);
+    authEventEmitter.on('logout', onServerSignOut);
     return () => {
-      authEventEmitter.off('logout', logout);
+      authEventEmitter.off('logout', onServerSignOut);
     };
-  }, [logout]);
+  }, [onServerSignOut]);
 
   return (
-    <AuthContext.Provider value={{ authenticatedUser, isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ authenticatedUser, isAuthenticated, login: onServerSignIn, onServerSignOut }}>
       {children}
     </AuthContext.Provider>
   );

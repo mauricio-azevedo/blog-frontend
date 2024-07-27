@@ -2,11 +2,12 @@ import axios, { AxiosResponse, HttpStatusCode } from 'axios';
 import { message as antdMessage } from 'antd';
 import { ApiResponse } from './api.types';
 import { Post, PostsPaginated } from '../features/posts/posts.types';
-import { User } from '../features/users/users.types';
 import authEventEmitter from '../features/auth/AuthEventEmitter';
+import { SignResponse } from '../features/auth/auth.types';
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_BASE_URL,
+  withCredentials: true,
 });
 
 api.interceptors.request.use(
@@ -47,10 +48,11 @@ const handleUnauthorized = (status: HttpStatusCode | undefined): void => {
 };
 
 // Users
-export const signUp = (user: { email: string; password: string }) =>
-  api.post<ApiResponse<{ user: User; token: string }>>('/users', { user });
+export const signUp = (user: { name: string; email: string; password: string }) =>
+  api.post<ApiResponse<SignResponse>>('/users', { user });
 export const signIn = (user: { email: string; password: string }) =>
-  api.post<ApiResponse<{ user: User; token: string }>>('/users/sign_in', { user });
+  api.post<ApiResponse<SignResponse>>('/users/sign_in', { user });
+export const signOut = () => api.delete<ApiResponse<null>>('/users/sign_out');
 
 // Posts
 export const createPost = (post: { title: string; body: string }) => api.post<ApiResponse<Post>>('/posts', { post });

@@ -7,6 +7,7 @@ import SignUp from './features/auth/SignUp';
 import PostList from './features/posts/PostList';
 import ProtectedRoute from './features/auth/ProtectedRoute';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
+import { signOut } from './api/api';
 
 const { Header, Sider, Content } = Layout;
 
@@ -17,7 +18,7 @@ const MainLayout: React.FC<{
   colorBgContainer: string;
   borderRadiusLG: number;
 }> = ({ children, collapsed, setCollapsed, colorBgContainer, borderRadiusLG }) => {
-  const { logout } = useAuth();
+  const { onServerSignOut } = useAuth();
 
   const showLogoutConfirm = () => {
     Modal.confirm({
@@ -25,10 +26,19 @@ const MainLayout: React.FC<{
       okText: 'Logout',
       cancelText: 'Go back',
       icon: <LogoutOutlined />,
-      onOk() {
-        logout();
+      async onOk() {
+        await onSignOutClick();
       },
     });
+  };
+
+  const onSignOutClick = async () => {
+    try {
+      await signOut();
+      onServerSignOut();
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
   };
 
   return (
@@ -54,7 +64,14 @@ const MainLayout: React.FC<{
         />
       </Sider>
       <Layout>
-        <Header style={{ padding: 0, background: colorBgContainer, display: 'flex', justifyContent: 'space-between' }}>
+        <Header
+          style={{
+            padding: 0,
+            background: colorBgContainer,
+            display: 'flex',
+            justifyContent: 'space-between',
+          }}
+        >
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}

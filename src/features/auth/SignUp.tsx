@@ -19,8 +19,8 @@ const SignUp: React.FC = () => {
 
     try {
       const response = await signUp(values);
-      const { user, token } = response.data.data;
-      login(user, token);
+      const { user, access_token } = response.data.data;
+      login(user, access_token);
     } catch (error) {
       console.error('Sign up error:', error);
     } finally {
@@ -42,13 +42,6 @@ const SignUp: React.FC = () => {
             label="Password"
             name="password"
             rules={[{ required: true, message: 'Please input your password' }]}
-          >
-            <Input.Password />
-          </Form.Item>
-          <Form.Item
-            label="Confirm password"
-            name="password_confirmation"
-            rules={[{ required: true, message: 'Please confirm your password' }]}
           >
             <Input.Password />
           </Form.Item>
